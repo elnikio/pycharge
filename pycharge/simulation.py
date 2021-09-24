@@ -21,7 +21,7 @@ All units are in SI.
 """
 from __future__ import annotations
 
-from typing import Any, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
 import dill as pickle
 import numpy as np
@@ -55,14 +55,24 @@ class Simulation():
     Args:
         sources (Union[Sequence, Union[Charge, Dipole]]): Either a single or
             list of `Dipole` and `Charge` object(s) in the simulation.
-        h (float): Tolerance for Newton's method. Defaults to `1e-22`.
+        E_field (Callable[[float, float, float, float], ndarray]): Function
+            returning the external electric field components. Parameters are
+            time, x, y, and z. Default is `None`.
+        B_field (Callable[[float, float, float, float], ndarray]): Function
+            returning the external magnetic field components. Parameters are
+            time, x, y, and z. Default is `None`.
+        h (float): Tolerance for Newton's method. Default is `1e-22`.
     """
 
     def __init__(
         self,
         sources: Union[Sequence, Union[Charge, Dipole]],
+        E_field: Callable[[float, float, float, float], ndarray] = None,
+        B_field: Callable[[float, float, float, float], ndarray] = None,
         h: float = 1e-22
     ) -> None:
+        self.E_field = E_field  # External E field
+        self.B_field = B_field  # External B field
         self.h = h
         self.all_charges = []  # List of all `Charge` objects
         self.dipoles = []  # List of `Dipole` objects
@@ -133,9 +143,9 @@ class Simulation():
         """
         t_array = np.ones((x.shape))
         t_array[:, :, :] = t
-        E_x = np.zeros((x.shape))
-        E_y = np.zeros((x.shape))
-        E_z = np.zeros((x.shape))
+        Ex = np.zeros((x.shape))
+        Ey = np.zeros((x.shape))
+        Ez = np.zeros((x.shape))
         for charge in self.all_charges:
             if exclude_charges is not None and charge in exclude_charges:
                 continue
@@ -144,10 +154,14 @@ class Simulation():
                                  args=(t_array, x, y, z), tol=self.h)
             E_field = self._calculate_individual_E(
                 charge, tr, x, y, z, pcharge_field)
-            E_x += E_field[0]
-            E_y += E_field[1]
-            E_z += E_field[2]
-        return np.array((E_x, E_y, E_z))
+            Ex += E_field[0]
+            Ey += E_field[1]
+            Ez += E_field[2]
+        if self.E_field is not None:  # Add external E field
+            Ex += self.E_field(t, x, y, z)[0]
+            Ey += self.E_field(t, x, y, z)[1]
+            Ez += self.E_field(t, x, y, z)[2]
+        return np.array((Ex, Ey, Ez))
 
     def calculate_B(
         self,
@@ -193,6 +207,10 @@ class Simulation():
             Bx += 1/(c*r_mag)*(ry*E_z-rz*E_y)
             By += 1/(c*r_mag)*(rz*E_x-rx*E_z)
             Bz += 1/(c*r_mag)*(rx*E_y-ry*E_x)
+        if self.B_field is not None:  # Add external B field
+            Bx += self.B_field(t, x, y, z)[0]
+            By += self.B_field(t, x, y, z)[1]
+            Bz += self.B_field(t, x, y, z)[2]
         return np.array((Bx, By, Bz))
 
     def calculate_V(
