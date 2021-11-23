@@ -61,7 +61,8 @@ class Simulation():
         B_external (Callable[[float, float, float, float], ndarray]): Function
             returning the external magnetic field components. Parameters are
             time, x, y, and z. Default is `None`.
-        h (float): Tolerance for Newton's method. Default is `1e-22`.
+        tol (float): Tolerance for the scipy.optimize.newton method.
+            Default is `1e-22`.
     """
 
     def __init__(
@@ -69,11 +70,11 @@ class Simulation():
         sources: Union[Sequence, Union[Charge, Dipole]],
         E_external: Callable[[float, float, float, float], ndarray] = None,
         B_external: Callable[[float, float, float, float], ndarray] = None,
-        h: float = 1e-22
+        tol: float = 1e-22
     ) -> None:
         self.E_external = E_external  # External E field
         self.B_external = B_external  # External B field
-        self.h = h
+        self.tol = tol
         self.all_charges = []  # List of all `Charge` objects
         self.dipoles = []  # List of `Dipole` objects
         if not isinstance(sources, Sequence):
@@ -151,7 +152,7 @@ class Simulation():
                 continue
             initial_guess = -1e-12*np.ones((x.shape))
             tr = optimize.newton(charge.solve_time, initial_guess,
-                                 args=(t_array, x, y, z), tol=self.h)
+                                 args=(t_array, x, y, z), tol=self.tol)
             E_field = self._calculate_individual_E(
                 charge, tr, x, y, z, pcharge_field)
             Ex += E_field[0]
@@ -197,7 +198,7 @@ class Simulation():
                 continue
             initial_guess = -1e-12*np.ones((x.shape))
             tr = optimize.newton(charge.solve_time, initial_guess,
-                                 args=(t_array, x, y, z), tol=self.h)
+                                 args=(t_array, x, y, z), tol=self.tol)
             E_x, E_y, E_z = self._calculate_individual_E(
                 charge, tr, x, y, z, pcharge_field)
             rx = x - charge.xpos(tr)
@@ -242,7 +243,7 @@ class Simulation():
                 continue
             initial_guess = -1e-12*np.ones((x.shape))
             tr = optimize.newton(charge.solve_time, initial_guess,
-                                 args=(t_array, x, y, z), tol=self.h)
+                                 args=(t_array, x, y, z), tol=self.tol)
             rx = x - charge.xpos(tr)
             ry = y - charge.ypos(tr)
             rz = z - charge.zpos(tr)
@@ -286,7 +287,7 @@ class Simulation():
                 continue
             initial_guess = -1e-12*np.ones((x.shape))
             tr = optimize.newton(charge.solve_time, initial_guess,
-                                 args=(t_array, x, y, z), tol=self.h)
+                                 args=(t_array, x, y, z), tol=self.tol)
             rx = x - charge.xpos(tr)
             ry = y - charge.ypos(tr)
             rz = z - charge.zpos(tr)
