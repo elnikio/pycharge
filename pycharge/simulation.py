@@ -55,10 +55,10 @@ class Simulation():
     Args:
         sources (Union[Sequence, Union[Charge, Dipole]]): Either a single or
             list of `Dipole` and `Charge` object(s) in the simulation.
-        E_field (Callable[[float, float, float, float], ndarray]): Function
+        E_external (Callable[[float, float, float, float], ndarray]): Function
             returning the external electric field components. Parameters are
             time, x, y, and z. Default is `None`.
-        B_field (Callable[[float, float, float, float], ndarray]): Function
+        B_external (Callable[[float, float, float, float], ndarray]): Function
             returning the external magnetic field components. Parameters are
             time, x, y, and z. Default is `None`.
         h (float): Tolerance for Newton's method. Default is `1e-22`.
@@ -67,12 +67,12 @@ class Simulation():
     def __init__(
         self,
         sources: Union[Sequence, Union[Charge, Dipole]],
-        E_field: Callable[[float, float, float, float], ndarray] = None,
-        B_field: Callable[[float, float, float, float], ndarray] = None,
+        E_external: Callable[[float, float, float, float], ndarray] = None,
+        B_external: Callable[[float, float, float, float], ndarray] = None,
         h: float = 1e-22
     ) -> None:
-        self.E_field = E_field  # External E field
-        self.B_field = B_field  # External B field
+        self.E_external = E_external  # External E field
+        self.B_external = B_external  # External B field
         self.h = h
         self.all_charges = []  # List of all `Charge` objects
         self.dipoles = []  # List of `Dipole` objects
@@ -157,10 +157,10 @@ class Simulation():
             Ex += E_field[0]
             Ey += E_field[1]
             Ez += E_field[2]
-        if self.E_field is not None:  # Add external E field
-            Ex += self.E_field(t, x, y, z)[0]
-            Ey += self.E_field(t, x, y, z)[1]
-            Ez += self.E_field(t, x, y, z)[2]
+        if self.E_external is not None:  # Add external E field
+            Ex += self.E_external(t, x, y, z)[0]
+            Ey += self.E_external(t, x, y, z)[1]
+            Ez += self.E_external(t, x, y, z)[2]
         return np.array((Ex, Ey, Ez))
 
     def calculate_B(
@@ -207,10 +207,10 @@ class Simulation():
             Bx += 1/(c*r_mag)*(ry*E_z-rz*E_y)
             By += 1/(c*r_mag)*(rz*E_x-rx*E_z)
             Bz += 1/(c*r_mag)*(rx*E_y-ry*E_x)
-        if self.B_field is not None:  # Add external B field
-            Bx += self.B_field(t, x, y, z)[0]
-            By += self.B_field(t, x, y, z)[1]
-            Bz += self.B_field(t, x, y, z)[2]
+        if self.B_external is not None:  # Add external B field
+            Bx += self.B_external(t, x, y, z)[0]
+            By += self.B_external(t, x, y, z)[1]
+            Bz += self.B_external(t, x, y, z)[2]
         return np.array((Bx, By, Bz))
 
     def calculate_V(

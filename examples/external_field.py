@@ -8,7 +8,7 @@ from scipy.constants import c
 import pycharge as pc
 
 
-def E_field(t, x, y, z):
+def E_external(t, x, y, z):
     """Return sinusoidal plane wave electric field along x direction."""
     return [1e8*np.sin(2*np.pi/wavelength*(x-c*t)), 0, 0]
 
@@ -16,7 +16,7 @@ def E_field(t, x, y, z):
 dt = 1e-18
 wavelength = 10e-9
 
-simulation = pc.Simulation([], E_field)  # No charges in simulation
+simulation = pc.Simulation([], E_external)  # No charges in simulation
 
 # Create meshgrid in x-y plane between -10 nm to 10 nm at z=0
 lim = 10e-9
