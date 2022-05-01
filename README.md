@@ -24,6 +24,10 @@ PyCharge was developed to allow both novice and experienced users model a wide r
 
 Our computational physics paper introducing the PyCharge package is available on [arXiv](https://arxiv.org/abs/2107.12437) and includes an extensive review of the rich physics that govern the coupled dipole simulations.
 
+## Added Features
+
+- Ability to define static fields using sympy equations.
+
 ## Documentation
 
 See the manual hosted at [pycharge.readthedocs.io](https://pycharge.readthedocs.io/) for the latest documentation.
